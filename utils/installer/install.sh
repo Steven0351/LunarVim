@@ -31,6 +31,11 @@ installnodearch() {
 	sudo pacman -S npm
 }
 
+installnodealpine() {
+  apk add nodejs
+  apk add npm
+}
+
 installnodefedora() {
 	sudo dnf install -y nodejs
 	sudo dnf install -y npm
@@ -50,6 +55,7 @@ installnode() {
 	echo "Installing node..."
 	[ "$(uname)" = "Darwin" ] && installnodemac
 	grep -q Ubuntu /etc/os-release && installnodeubuntu
+  grep -q Alpine /etc/os-release && installnodealpine
 	[ -f "/etc/arch-release" ] && installnodearch
 	[ -f "/etc/artix-release" ] && installnodearch
 	[ -f "/etc/fedora-release" ] && installnodefedora
@@ -81,6 +87,10 @@ installpiponfedora() {
 	sudo dnf install -y pip >/dev/null
 }
 
+installpiponalpine() {
+  apk add py3-pip
+}
+
 installpipongentoo() {
 	sudo emerge -avn dev-python/pip
 }
@@ -89,6 +99,7 @@ installpip() {
 	echo "Installing pip..."
 	[ "$(uname)" = "Darwin" ] && installpiponmac
 	grep -q Ubuntu /etc/os-release && installpiponubuntu
+  grep -q Alpine /etc/os-release && installpiponalpine
 	[ -f "/etc/arch-release" ] && installpiponarch
 	[ -f "/etc/fedora-release" ] && installpiponfedora
 	[ -f "/etc/gentoo-release" ] && installpipongentoo
@@ -152,10 +163,8 @@ cloneconfig() {
 }
 
 asktoinstallnode() {
-	echo "node not found"
-	printf "Would you like to install node now (y/n)? "
-	read -r answer
-	[ "$answer" != "${answer#[Yy]}" ] && installnode
+	echo "node not found. Installing node..."
+	installnode
 }
 
 asktoinstallgit() {
@@ -184,6 +193,12 @@ installonubuntu() {
 	npm install -g tree-sitter-cli
 }
 
+installonalpine() {
+  apk add ripgrep fzf python3-dev
+  pip3 install neovim-remote 
+  npm install -g tree-sitter-cli
+}
+
 installtermux() {
 	apt install ripgrep fzf
 	pip install neovim-remote
@@ -209,6 +224,7 @@ installongentoo() {
 installextrapackages() {
 	[ "$(uname)" = "Darwin" ] && installonmac
 	grep -q Ubuntu /etc/os-release && installonubuntu
+  grep -q Alpine /etc/os-release && installonalpine
 	[ -f "/etc/arch-release" ] && installonarch
 	[ -f "/etc/artix-release" ] && installonarch
 	[ -f "/etc/fedora-release" ] && installonfedora
