@@ -104,7 +104,6 @@ installpip() {
 	[ -f "/etc/gentoo-release" ] && installpipongentoo
 	[ -d "/data/data/com.termux" ] && installpipontermux
 	[ "$(uname -s | cut -c 1-10)" = "MINGW64_NT" ] && echo "Windows not currently supported"
-  installextrapackages
 }
 
 installpynvim() {
@@ -256,6 +255,8 @@ esac
 
 # install node and neovim support
 (command -v node >/dev/null && echo "node installed, moving on...") || asktoinstallnode
+
+installextrapackages
 
 # install pynvim
 (pip3 list | grep pynvim >/dev/null && echo "pynvim installed, moving on...") || installpynvim
