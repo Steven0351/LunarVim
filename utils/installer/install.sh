@@ -104,6 +104,7 @@ installpip() {
 	[ -f "/etc/gentoo-release" ] && installpipongentoo
 	[ -d "/data/data/com.termux" ] && installpipontermux
 	[ "$(uname -s | cut -c 1-10)" = "MINGW64_NT" ] && echo "Windows not currently supported"
+  installextrapackages
 }
 
 installpynvim() {
