@@ -61,8 +61,7 @@ installnode() {
 	[ -f "/etc/fedora-release" ] && installnodefedora
 	[ -f "/etc/gentoo-release" ] && installnodegentoo
 	[ -d "/data/data/com.termux" ] && installnodetermux
-	[ "$(uname -s | cut -c 1-10)" = "MINGW64_NT" ] && echo "Windows not currently supported"
-	sudo npm i -g neovim
+	[ "$(uname -s | cut -c 1-10)" = "MINGW64_NT" ] && echo "Windows not currently supported"	
 }
 
 installpiponmac() {
