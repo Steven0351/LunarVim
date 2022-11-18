@@ -1,4 +1,10 @@
-![LunarVim Demo](./utils/media/lunarvim_logo_dark.png)
+# :warning: This branch is no longer maintained :warning:
+
+This `rolling` branch has been deprecated.
+Rolling/nightly releases are now based on the `master` branch.
+All new work should forked from the latest changes on `master`, and PRs should be targeted at `master`.
+
+![lunarvim_logo_dark](https://user-images.githubusercontent.com/59826753/159940098-54284f26-f1da-4481-8b03-1deb34c57533.png)
 
 <div align="center"><p>
     <a href="https://github.com/lunarvim/LunarVim/releases/latest">
@@ -16,36 +22,51 @@
     <a href="https://twitter.com/intent/follow?screen_name=chrisatmachine">
       <img src="https://img.shields.io/twitter/follow/chrisatmachine?style=social&logo=twitter" alt="follow on Twitter">
     </a>
-</p>	
+</p>
 
 </div>
 
-## Documentation
+## Showcase
+![intro1](https://user-images.githubusercontent.com/29136904/191624232-a7b13f11-cc9f-495e-879e-67ea0444c568.png)
+![info](https://user-images.githubusercontent.com/29136904/191624942-3d75ef87-35cf-434d-850e-3e7cd5ce2ad0.png)
 
-You can find all of the documentation for Lunarvim at [lunarvim.org](https://www.lunarvim.org)
+![demo1](https://user-images.githubusercontent.com/29136904/191625579-ce9efb1f-1e23-4a05-aebc-915a0f614d72.png)
+![demo2](https://user-images.githubusercontent.com/29136904/191626018-2e9ee682-043c-4ce5-a5dd-c11b94759782.png)
+![demo3](https://user-images.githubusercontent.com/29136904/191626246-ce0cc0c5-4b41-49e3-9cb7-4b1867ab0dcb.png)
 
 ## Install In One Command!
 
-Make sure you have the release version of Neovim (0.5).
+Make sure you have the release version of Neovim (0.8+).
 
-If you have previously installed LunarVim, make sure to remove `/usr/local/bin/lvim`, as we've moved the launcher to `~/.local/bin/lvim`
+### Linux/MacOS:
 
-``` bash
+If you are running Neovim 0.8+
+
+```bash
 bash <(curl -s https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh)
 ```
 
-## Install Language support
+If you are running Neovim 0.8+
 
-- Enter `:LspInstall` followed by `<TAB>` to see your options for LSP
+```bash
+export LV_BRANCH="rolling"; bash <(curl -s https://raw.githubusercontent.com/lunarvim/lunarvim/rolling/utils/installer/install.sh)
+```
 
-- Enter `:TSInstall` followed by `<TAB>` to see your options for syntax highlighting
+To run the install script without any interaction you can pass the `-y` flag to automatically install all dependencies and have no prompts. This is particularly useful in automated installations.
 
-**NOTE** I recommend installing `lua` for autocomplete in `config.lua`
+In the same way, you can use `--no-install-dependencies` to skip the dependency installation.
 
+### Windows (Powershell 7+):
 
-![Demo1](./utils/media/demo1.png)
-![Demo2](./utils/media/demo2.png)
-![Demo3](./utils/media/demo3.png)
+Powershell v7+ is required for this script. For instructions on how to install, [click here.](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.2)
+
+```powershell
+Invoke-WebRequest https://raw.githubusercontent.com/LunarVim/LunarVim/master/utils/installer/install.ps1 -UseBasicParsing | Invoke-Expression
+```
+
+## Automatic LSP support
+
+By default, most supported language servers will get automatically installed once you open the supported file type, e.g, opening a Python file for the first time will install `Pyright` and configure it automatically for you.
 
 ## Configuration file
 
@@ -56,7 +77,7 @@ Example:
 ```lua
 -- general
 lvim.format_on_save = true
-lvim.colorscheme = "onedarker"
+lvim.colorscheme = "tokyonight"
 
 lvim.leader = "space"
 -- add your own keymapping
@@ -72,36 +93,46 @@ lvim.keys.normal_mode["<C-s>"] = ":w<cr>"
 -- lvim.builtin.which_key.mappings["P"] = { "<cmd>Telescope projects<CR>", "Projects" }
 
 -- Configure builtin plugins
-lvim.builtin.dashboard.active = true
+lvim.builtin.alpha.active = true
+lvim.builtin.notify.active = true
 lvim.builtin.terminal.active = true
 
 -- Treesitter parsers change this to a table of the languages you want i.e. {"java", "python", javascript}
-lvim.builtin.treesitter.ensure_installed = "maintained"
+lvim.builtin.treesitter.ensure_installed = "all"
 lvim.builtin.treesitter.ignore_install = { "haskell" }
 
 -- Disable virtual text
 lvim.lsp.diagnostics.virtual_text = false
 
--- set a formatter if you want to override the default lsp one (if it exists)
-lvim.lang.python.formatters = {
+-- Select which servers should be configured manually. Requires `:LvimCacheReset` to take effect.
+-- See the full default list `:lua print(vim.inspect(lvim.lsp.override))`
+vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "pyright" })
+
+-- set a formatter, this will override the language server formatting capabilities (if it exists)
+local formatters = require "lvim.lsp.null-ls.formatters"
+formatters.setup {
+  { command = "black" },
   {
-    exe = "black",
-    args = {}
-  }
-}
--- set an additional linter
-lvim.lang.python.linters = {
-  {
-    exe = "flake8",
-    args = {}
-  }
+    command = "prettier",
+    ---@usage specify which filetypes to enable. By default, providers will attach to all the filetypes it supports.
+    filetypes = { "typescript", "typescriptreact" },
+  },
 }
 
+-- set additional linters
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup {
+  {
+    command = "eslint_d",
+    ---@usage specify which filetypes to enable. By default, providers will attach to all the filetypes it supports.
+    filetypes = { "javascript", "javascriptreact" },
+  },
+}
 
 -- Additional Plugins
 lvim.plugins = {
     {"lunarvim/colorschemes"},
-    {"folke/tokyonight.nvim"}, {
+    {
         "ray-x/lsp_signature.nvim",
         config = function() require"lsp_signature".on_attach() end,
         event = "BufRead"
@@ -111,38 +142,12 @@ lvim.plugins = {
 
 ## Updating LunarVim
 
-In order to update you should be aware of three things `Plugins`, `LunarVim` and `Neovim`
+- inside LunarVim `:LvimUpdate`
+- from the command-line `lvim +LvimUpdate +q`
 
-To update plugins:
+### Update the plugins
 
-```
-:PackerUpdate
-```
-
-To update LunarVim:
-
-```bash
-cd ~/.local/share/lunarvim/lvim && git pull
-lvim +LvimCacheReset +PackerUpdate
-```
-## Known Issues
-
-If you get either of the following errors
-- init.lua:6: module 'bootstrap' not found:
-- /home/user/.config/nvim/config.lua not found, falling back to /home/user/.config/nvim/lv-config.lua
-
-Try the following methods:
-1. clear up the cache files used by the startup processing. You can either pass it as an argument
-```bash
-lvim +LvimCacheReset
-```
-or just call it manually when inside LunarVim `:LvimCacheReset`
-
-2. make sure your `lvim` binary is up-to-date
-```bash
-export LUNARVIM_RUNTIME_DIR="${LUNARVIM_RUNTIME_DIR:-$HOME/.local/share/lunarvim}"
-bash "$LUNARVIM_RUNTIME_DIR/lvim/utils/installer/install_bin.sh"
-```
+- inside LunarVim `:PackerUpdate`
 
 ## Resources
 
@@ -157,13 +162,15 @@ bash "$LUNARVIM_RUNTIME_DIR/lvim/utils/installer/install_bin.sh"
 ## Testimonials
 
 > "I have the processing power of a potato with 4 gb of ram and LunarVim runs perfectly."
+>
 > - @juanCortelezzi, LunarVim user.
 
 > "My minimal config with a good amount less code than LunarVim loads 40ms slower. Time to switch."
+>
 > - @mvllow, Potential LunarVim user.
 
 <div align="center" id="madewithlua">
-	
+
 [![Lua](https://img.shields.io/badge/Made%20with%20Lua-blue.svg?style=for-the-badge&logo=lua)](#madewithlua)
-	
+
 </div>

@@ -20,6 +20,7 @@ module.exports = {
       "always",
       [
         "build",
+        "chore",
         "ci",
         "docs",
         "feat",
@@ -30,5 +31,16 @@ module.exports = {
         "test",
       ],
     ],
+  },
+  /*
+    add a custom parser to handle exclamation marks in a commit
+    see: https://github.com/conventional-changelog/commitlint/issues/2226#issuecomment-911749509
+  */
+  parserPreset: {
+    parserOpts: {
+      headerPattern: /^(\w*)(?:\((.*)\))?!?: (.*)$/,
+      referenceActions: null,
+      issuePrefixes: ['ISS-'],
+    },
   },
 };
