@@ -1,73 +1,86 @@
 name: install
+
 on:
-  push:
-    branches: '**'
   pull_request:
     branches:
-      - 'master'
-      - 'rolling'
+      - "master"
+      - "rolling"
+    paths:
+      - '.github/workflows/**'
+      - 'lua/**'
+      - 'snapshots/**'
+      - 'tests/**'
+      - 'utils/**'
 
 jobs:
   unixish:
-    name: ${{ matrix.os }} ${{ matrix.runner }}
+    name: ${{ matrix.os }} ${{ matrix.runner }} (${{ matrix.neovim }})
     strategy:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-20.04
+          - runner: ubuntu-latest
             os: linux
-          - runner: macos-10.15
+            neovim: v0.10.0
+          - runner: macos-latest
             os: osx
+            neovim: v0.10.0
+          - runner: ubuntu-22.04
+            os: linux
+            neovim: nightly
+          - runner: macos-12
+            os: osx
+            neovim: nightly
     runs-on: ${{ matrix.runner }}
-    if: github.event.pull_request.draft == false
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Install dependencies for Linux
-        if: matrix.os == 'linux'
-        run: |
-          sudo add-apt-repository ppa:neovim-ppa/unstable -y
-          sudo apt-get update
-          sudo apt-get install neovim -y
+      - uses: actions/checkout@v4
 
-      - name: Install dependencies for OSX
-        if: matrix.os == 'osx'
+      - name: Install neovim binary
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.neovim }}
+
+      - name: Install LunarVim
+        timeout-minutes: 4
+        env:
+          LV_BRANCH: ${{ github.head_ref || github.ref_name }}
+          LV_REMOTE: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          LUNARVIM_LOG_LEVEL: "debug"
         run: |
-          brew update >/dev/null
-          brew install neovim
+          export PATH="$HOME/.local/bin:$PATH"
+
+          installer_url="https://raw.githubusercontent.com/${LV_REMOTE}/${LV_BRANCH}/utils/installer/install.sh"
+          curl -LSsO "$installer_url"
+          bash ./install.sh --no-install-dependencies
+
+      - name: Run unit-tests
+        # NOTE: make sure to adjust the timeout if you start adding a lot of tests
+        timeout-minutes: 4
+        run: |
+          nvim --version
+          make test
+
+  windows:
+    name: "windows-latest"
+    runs-on: windows-latest
+    if: github.event.pull_request.draft == false
+    continue-on-error: true # windows support is still experimental
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      # it's not currently possbile to run tests on windows, see nvim-lua/plenary.nvim#255
+      - uses: actions/checkout@v4
+
+      - name: Install neovim binary
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: v0.10.0
 
       - name: Install LunarVim
         timeout-minutes: 4
         run: |
-          bash ./utils/installer/install.sh --testing
-
-      - name: Test LunarVim PackerCompile
-        run: if lvim --headless +PackerCompile -c ':qall' 2>&1|grep -q 'Error'; then false; fi
-
-      - name: Test LunarVim Health
-        run: if lvim --headless +checkhealth -c ':qall' 2>&1|grep -q 'Error'; then false; fi
-
-#   freebsd:
-#     runs-on: macos-latest
-#     if: github.event.pull_request.draft == false
-#     continue-on-error: true # we don't support freebsd yet
-#     name: "FreeBSD macos-latest"
-#     steps:
-#       - uses: actions/checkout@v2
-      
-#       - name: Install dependencies for FreeBSD
-#         uses: vmactions/freebsd-vm@v0.1.5
-#         with:
-#           prepare: pkg install -y curl neovim
-#           run: bash ./utils/installer/install.sh
-
-#       - name: Test LunarVim PackerCompile
-#         uses: vmactions/freebsd-vm@v0.1.5
-#         with:
-#           run: if nvim --headless +PackerCompile -c ':qall' 2>&1|grep -q 'Error'; then false; fi
-
-#       - name: Test LunarVim Health
-#         uses: vmactions/freebsd-vm@v0.1.5
-#         with:
-#           run: if nvim --headless +checkhealth -c ':qall' 2>&1|grep -q 'Error'; then false; fi
-
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pwsh.exe -NoLogo -ExecutionPolicy Bypass -NonInteractive -Command "./utils/installer/install.ps1 --local"

@@ -2,8 +2,8 @@ blank_issues_enabled: true
 
 contact_links:
   - name: Matrix community
-    url: https://matrix.to/#/+atmachine:matrix
-    about: Please ask and answer questions on Matrix.
+    url: https://matrix.to/#/#atmachine-neovim:matrix.org
+    about: Ask and discuss about LunarVim on Matrix.
   - name: Discord community
-    url: https://discord.gg/Xb9B4Ny
-    about: Please ask and answer questions on Discord.
+    url: https://discord.com/invite/sbDcEmJHww
+    about: Ask and discuss about LunarVim on Discord.
